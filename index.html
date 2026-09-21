@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="분석 프레임 10종별로 맞는 차트와 Copilot 프롬프트를 고르는 페이지">
+<style>
+  :root{color-scheme:light dark}
+  html,body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>프레임별 차트 선택</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#EFF2F6; --card:#FFFFFF; --ink:#141D28; --ink2:#3D4855; --mute:#6B7684;
+  --line:#D5DCE5; --hair:#E7ECF2;
+  --accent:#14489C; --accent-soft:#E2E9F5; --accent-2:#5E87C9;
+  --warn:#9E3226; --warn-soft:#F6E7E4;
+  --grid:#C3CCD8;
+  --code-bg:#101A26; --code-ink:#D9E2EC;
+  --ui:"IBM Plex Sans KR","Malgun Gothic","맑은 고딕","Apple SD Gothic Neo",sans-serif;
+  --disp:"Song Myung","IBM Plex Sans KR",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0E151D; --card:#182230; --ink:#E8EEF5; --ink2:#C2CDDA; --mute:#8A95A3;
+  --line:#2A3746; --hair:#212C3A;
+  --accent:#7FA8E8; --accent-soft:#1B2A40; --accent-2:#4F76B5;
+  --warn:#E09383; --warn-soft:#2E1E1B;
+  --grid:#3B4A5C;
+  --code-bg:#0A1119; --code-ink:#D2DEEA;
+}}
+:root[data-theme="dark"]{
+  --paper:#0E151D; --card:#182230; --ink:#E8EEF5; --ink2:#C2CDDA; --mute:#8A95A3;
+  --line:#2A3746; --hair:#212C3A;
+  --accent:#7FA8E8; --accent-soft:#1B2A40; --accent-2:#4F76B5;
+  --warn:#E09383; --warn-soft:#2E1E1B;
+  --grid:#3B4A5C;
+  --code-bg:#0A1119; --code-ink:#D2DEEA;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--ui);
+  font-size:15px;line-height:1.7;padding-inline:16px;padding-block:0 72px;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto}
+
+/* head */
+header.top{padding-block:44px 26px;border-bottom:1px solid var(--ink)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 14px}
+h1{font-family:var(--disp);font-size:clamp(30px,5.5vw,44px);line-height:1.22;margin:0;
+  font-weight:400;letter-spacing:-.01em;text-wrap:balance}
+header.top p{margin:14px 0 0;color:var(--ink2);max-width:60ch}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center;
+  padding:18px 20px;margin-block:26px;background:var(--card);
+  border:1px solid var(--line);border-radius:10px}
+.ctl-label{font-size:12px;letter-spacing:.06em;color:var(--mute);font-weight:600;
+  text-transform:uppercase;font-family:var(--mono)}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.chk{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;cursor:pointer;
+  border:1px solid var(--line);border-radius:99px;font-size:13.5px;background:transparent;
+  color:var(--ink2);transition:background .14s,border-color .14s,color .14s}
+.chk input{margin:0;accent-color:var(--accent)}
+.chk:has(input:checked){background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:99px;overflow:hidden;background:transparent}
+.seg button{font-family:var(--ui);font-size:13px;padding:7px 15px;border:0;cursor:pointer;
+  background:transparent;color:var(--mute)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff;font-weight:600}
+.ctl-note{font-size:12.5px;color:var(--mute);flex-basis:100%;margin:0}
+
+/* grid */
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:16px 18px 14px;display:flex;flex-direction:column;gap:11px;
+  transition:opacity .18s,filter .18s}
+.card.dim{opacity:.3;filter:saturate(.25)}
+.thumb{background:transparent;border-bottom:1px solid var(--hair);padding-bottom:11px}
+.thumb svg{display:block;width:100%;height:auto;max-width:100%}
+.head{display:flex;align-items:baseline;gap:8px}
+.fno{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500}
+h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em}
+.when{margin:0;color:var(--mute);font-size:13.5px}
+.pick{margin:0;font-size:14.5px}
+.pick b{color:var(--accent)}
+.avoid{margin:0;font-size:13px;color:var(--warn)}
+.avoid span{font-family:var(--mono)}
+
+/* prompt */
+.pbox{margin-top:auto;padding-top:11px;border-top:1px solid var(--hair)}
+pre{margin:0 0 10px;background:var(--code-bg);color:var(--code-ink);border-radius:7px;
+  padding:12px 13px;font-family:var(--mono);font-size:12px;line-height:1.62;
+  white-space:pre-wrap;word-break:break-word}
+.copy{font-family:var(--ui);font-size:13px;font-weight:600;cursor:pointer;width:100%;
+  background:var(--accent);color:#fff;border:0;border-radius:6px;padding:8px 0;
+  transition:opacity .14s}
+.copy:hover{opacity:.87}
+.copy.done{background:var(--ink2)}
+
+/* sections */
+section{margin-top:52px}
+h2{font-family:var(--disp);font-weight:400;font-size:26px;margin:0 0 6px;letter-spacing:-.01em}
+h2 + .sub{margin:0 0 20px;color:var(--mute);font-size:14px}
+.rules{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.rule{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--warn);
+  border-radius:0 8px 8px 0;padding:15px 17px}
+.rule h4{margin:0 0 5px;font-size:15px;font-weight:700}
+.rule p{margin:0;font-size:13.5px;color:var(--ink2)}
+.rule .fix{margin-top:7px;font-size:13px;color:var(--accent);font-weight:600}
+
+.retry{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.retry-row{display:grid;grid-template-columns:130px 1fr;gap:0;border-bottom:1px solid var(--hair)}
+.retry-row:last-child{border-bottom:0}
+.retry-row > div{padding:13px 17px}
+.retry-row .k{font-size:13px;color:var(--mute);border-right:1px solid var(--hair);font-weight:600}
+.retry-row .v{font-family:var(--mono);font-size:12.5px;color:var(--ink2);line-height:1.6}
+
+footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--mute)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:520px){
+  .retry-row{grid-template-columns:1fr}
+  .retry-row .k{border-right:0;border-bottom:1px solid var(--hair);padding-bottom:6px}
+  .retry-row .v{padding-top:8px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Lv2 · 데이터 분석 자동화</p>
+  <h1>프레임별 차트 선택</h1>
+  <p>차트는 취향이 아니라 <strong>분석 프레임</strong>이 정합니다. 무엇을 보려는지 먼저 정하고, 거기에 맞는 차트를 고른 뒤, 프롬프트를 복사해 Copilot에 넣으세요.</p>
+</header>
+
+<div class="controls">
+  <span class="ctl-label">내 표 살펴보기</span>
+  <div class="checks">
+    <label class="chk"><input type="checkbox" id="f-time"> 가로축에 시간이 온다</label>
+    <label class="chk"><input type="checkbox" id="f-cmp"> 비교할 기준이 있다</label>
+  </div>
+  <span class="ctl-label">프롬프트</span>
+  <div class="seg" role="group" aria-label="프롬프트 종류">
+    <button type="button" id="m-lab" aria-pressed="true">실습 데이터</button>
+    <button type="button" id="m-own" aria-pressed="false">내 업무</button>
+  </div>
+  <p class="ctl-note">체크하면 해당하는 프레임만 선명해집니다. 둘 다 해제하면 전체가 보입니다. · 비교할 기준 = 목표 · 전월 · 다른 그룹</p>
+</div>
+
+<div class="grid" id="grid">
+
+  <article class="card" data-time="0" data-cmp="0">
+    <div class="thumb">
+      <svg viewBox="0 0 200 96" role="img" aria-label="가로 막대 차트 예시">
+        <line x1="34" y1="6" x2="34" y2="90" stroke="var(--grid)" stroke-width="1"/>
+        <rect x="35" y="10" width="142" height="11" fill="var(--accent)"/>
+        <rect x="35" y="27" width="116" height="11" fill="var(--accent)"/>
+        <rect x="35" y="44" width="97" height="11" fill="var(--accent-2)"/>
+        <rect x="35" y="61" width="74" height="11" fill="var(--accent-2)"/>
+        <rect x="35" y="78" width="52" height="11" fill="var(--accent-2)"/>
+        <rect x="6" y="11" width="24" height="9" rx="1.5" fill="var(--grid)"/>
+        <rect x="10" y="28" width="20" height="9" rx="1.5" fill="var(--grid)"/>
+        <rect x="8" y="45" width="22" height="9" rx="1.5" fill="var(--grid)"/>
+        <rect x="12" y="62" width="18" height="9" rx="1.5" fill="var(--grid)"/>
+        <rect x="9" y="79" width="21" height="9" rx="1.5" fill="var(--grid)"/>
+      </svg>
+    </div>
+    <div class="head"><span class="fno">①</span><h3>랭킹 · 구성</h3></div>
+    <p class="when">무엇이 크고 무엇이 작은가</p>
+    <p class="pick"><b>가로 막대</b> · 큰 값이 위로</p>
+    <p class="avoid"><span>✕</span> 조각 7개 넘는 원그래프 — 순위 비교 불가</p>
+    <div class="pbox">
+      <pre data-lab>카테고리별 실매출 합계를 가로 막대 차트로 만들어줘.
+큰 값이 위로 오도록 정렬하고, 막대 끝에 값을 표시해줘.</pre>
+      <pre data-own hidden>[분류 컬럼]별 [금액 컬럼] 합계를 가로 막대 차트로 만들어줘.
+큰 값이 위로 오도록 정렬하고, 막대 끝에 값을 표시해줘.</pre>
+      <button class="copy" type="button">프롬프트 복사</button>
+    </div>
+  </article>
+
+  <article class="card" data-time="1" data-cmp="0">
+    <div class="thumb">
+      <svg viewBox="0 0 200 96" role="img" aria-label="꺾은선 차트 예시">
+        <line x1="20" y1="88" x2="192" y2="88" stroke="var(--grid)" stroke-width="1"/>
+        <line x1="20" y1="8" x2="20" y2="88" stroke="var(--grid)" stroke-width="1"/>
+        <polyline points="34,62 74,38 114,46 154,22 182,30" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="34" cy="62" r="3.4" fill="var(--accent)"/>
+        <circle cx="74" cy="38" r="3.4" fill="var(--accent)"/>
+        <circle cx="114" cy="46" r="3.4" fill="var(--accent)"/>
+        <circle cx="154" cy="22" r="3.4" fill="var(--accent)"/>
+        <circle cx="182" cy="30" r="3.4" fill="var(--accent)"/>
+      </svg>
+    </div>
+    <div class="head"><span class="fno">②</span><h3>추이</h3></div>
+    <p class="when">시간에 따라 어떻게 변해왔나</p>
+    <p class="pick"><b>꺾은선</b> · 시간은 반드시 가로축</p>
+    <p class="avoid"><span>✕</span> 세로 막대 — 연속성이 끊겨 보인다</p>
+    <div class="pbox">
+      <pre data-lab>월별 실매출 합계를 꺾은선 차트로 만들어줘.
+가로축은 월 순서대로 놓고, 각 점에 값을 표시해줘.</pre>
+      <pre data-own hidden>[기간 컬럼]별 [금액 컬럼] 합계를 꺾은선 차트로 만들어줘.
+가로축은 기간 순서대로 놓고, 각 점에 값을 표시해줘.</pre>
+      <button class="copy" type="button">프롬프트 복사</button>
+    </div>
+  </article>
+
+  <article class="card" data-time="0" data-cmp="1">
+    <div class="thumb">
+      <svg viewBox="0 0 200 96" role="img" aria-label="막대와 기준선 차트 예시">
+        <line x1="20" y1="88" x2="192" y2="88" stroke="var(--grid)" stroke-width="1"/>
+        <rect x="32" y="30" width="24" height="58" fill="var(--accent)"/>
+        <rect x="68" y="46" width="24" height="42" fill="var(--accent)"/>
+        <rect x="104" y="24" width="24" height="64" fill="var(--accent)"/>
+        <rect x="140" y="52" width="24" height="36" fill="var(--accent)"/>
+        <line x1="24" y1="36" x2="188" y2="36" stroke="var(--warn)" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="168" y="32" font-size="10" font-family="monospace" fill="var(--warn)">100%</text>
+      </svg>
+    </div>
+    <div class="head"><span class="fno">③</span><h3>목표 대비</h3></div>
+    <p class="when">기준과 얼마나 차이 나는가</p>
+    <p class="pick"><b>막대 + 기준선</b> · 기준은 점선으로</p>
+    <p class="avoid"><span>✕</span> 기준선 없는 막대 — 잘한 건지 알 수 없다</p>
+    <div class="pbox">
+      <pre data-lab>카테고리별 달성률을 세로 막대 차트로 만들고,
+100% 위치에 점선 기준선을 추가해줘. 세로축은 80%부터 시작해줘.</pre>
+      <pre data-own hidden>[분류 컬럼]별 [비율 컬럼]을 세로 막대 차트로 만들고,
+[기준값] 위치에 점선 기준선을 추가해줘.</pre>
+      <button class="copy" type="button">프롬프트 복사</button>
+    </div>
+  </article>
+
+  <article class="card" data-time="0" data-cmp="1">
+    <div class="thumb">
+      <svg viewBox="0 0 200 96" role="img" aria-label="묶은 세로막대 차트 예시">
+        <line x1="20" y1="88" x2="192" y2="88" stroke="var(--grid)" stroke-width="1"/>
+        <rect x="34" y="40" width="17" height="48" fill="var(--accent)"/>
+        <rect x="53" y="52" width="17" height="36" fill="var(--accent-2)"/>
+        <rect x="88" y="28" width="17" height="60" fill="var(--accent)"/>
+        <rect x="107" y="44" width="17" height="44" fill="var(--accent-2)"/>
+        <rect x="142" y="56" width="17" height="32" fill="var(--accent)"/>
+        <rect x="161" y="34" width="17" height="54" fill="var(--accent-2)"/>
+      </svg>
+    </div>
+    <div class="head"><span class="fno">④</span><h3>그룹 비교</h3></div>
+    <p class="when">A 집단과 B 집단이 다른가</p>
+    <p class="pick"><b>묶은 세로막대</b> · 범례 필수</p>
+    <p class="avoid"><span>✕</span> 누적 막대 — 개별 크기 비교가 안 된다</p>
+    <div class="pbox">
+      <pre data-lab>소속팀별로 11월과 12월 실매출을 묶은 세로막대 차트로 비교해줘.
+월별로 색을 다르게 하고 범례를 넣어줘.</pre>
+      <pre data-own hidden>[분류 컬럼]별로 [A 기간]과 [B 기간]의 [금액 컬럼]을
+묶은 세로막대 차트로 비교해줘. 범례를 넣어줘.</pre>
+      <button class="copy" type="button">프롬프트 복사</button>
+    </div>
+  </article>
+
+  <article class="card" data-time="1" data-cmp="1">
+    <div class="thumb">
+      <svg viewBox="0 0 200 96" role="img" aria-label="히트맵 예시">
+        <g>
+          <rect x="30" y="14" width="38" height="22" fill="var(--accent)" opacity="0.95"/>
+          <rect x="70" y="14" width="38" height="22" fill="var(--accent)" opacity="0.45"/>
+          <rect x="110" y="14" width="38" height="22" fill="var(--accent)" opacity="0.7"/>
+          <rect x="150" y="14" width="38" height="22" fill="var(--accent)" opacity="0.2"/>
+          <rect x="30" y="38" width="38" height="22" fill="var(--accent)" opacity="0.35"/>
+          <rect x="70" y="38" width="38" height="22" fill="var(--accent)" opacity="0.85"/>
+          <rect x="110" y="38" width="38" height="22" fill="var(--accent)" opacity="0.25"/>
+          <rect x="150" y="38" width="38" height="22" fill="var(--accent)" opacity="0.6"/>
+          <rect x="30" y="62" width="38" height="22" fill="var(--accent)" opacity="0.6"/>
+          <rect x="70" y="62" width="38" height="22" fill="var(--accent)" opacity="0.2"/>
+          <rect x="110" y="62" width="38" height="22" fill="var(--accent)" opacity="0.9"/>
+          <rect x="150" y="62" width="38" height="22" fill="var(--accent)" opacity="0.4"/>
+        </g>
+      </svg>
+    </div>
+    <div class="head"><span class="fno">⑤</span><h3>교차</h3></div>
+    <p class="when">두 기준을 동시에 놓고 보면</p>
+    <p class="pick"><b>조건부 서식 히트맵</b> · 칸이 많으면 색이 빠르다</p>
+    <p class="avoid"><span>✕</span> 계열 8개짜리 막대 — 범례 찾다 끝난다</p>
+    <div class="pbox">
+      <pre data-lab>행은 카테고리, 열은 월로 실매출을 교차표로 만들어줘.
+값이 클수록 진한 색이 되도록 조건부 서식을 넣어줘.
+결과는 새 시트에 만들어줘</pre>
+      <pre data-own hidden>행은 [분류 A], 열은 [분류 B]로 [금액 컬럼]을 교차표로 만들어줘.
+값이 클수록 진한 색이 되도록 조건부 서식을 넣어줘.
+결과는 새 시트에 만들어줘</pre>
+      <button class="copy" type="button">프롬프트 복사</button>
+    </div>
+  </article>
+
+  <article class="card" data-time="0" data-cmp="0">
+    <div class="thumb">
+      <svg viewBox="0 0 200 96" role="img" aria-label="히스토그램 예시">
+        <line x1="20" y1="88" x2="192" y2="88" stroke="var(--grid)" stroke-width="1"/>
+        <rect x="26" y="76" width="21" height="12" fill="var(--accent-2)"/>
+        <rect x="48" y="62" width="21" height="26" fill="var(--accent-2)"/>
+        <rect x="70" y="40" width="21" height="48" fill="var(--accent)"/>
+        <rect x="92" y="22" width="21" height="66" fill="var(--accent)"/>
+        <rect x="114" y="44" width="21" height="44" fill="var(--accent)"/>
+        <rect x="136" y="66" width="21" height="22" fill="var(--accent-2)"/>
+        <rect x="158" y="78" width="21" height="10" fill="var(--accent-2)"/>
+      </svg>
+    </div>
+    <div class="head"><span class="fno">⑥</span><h3>분포</h3></div>
+    <p class="when">평균 뒤에 무엇이 숨어 있나</p>
+    <p class="pick"><b>히스토그램</b> · 구간은 8~12개</p>
+    <p class="avoid"><span>✕</span> 평균 막대 하나 — 쏠림이 사라진다</p>
+    <div class="pbox">
+      <pre data-lab>방송 1건당 실매출의 분포를 히스토그램으로 그려줘.
+구간은 10개로 나누고, 가로축에 구간 범위를 표시해줘.</pre>
+      <pre data-own hidden>[금액 컬럼]의 분포를 히스토그램으로 그려줘.
+구간은 10개로 나누고, 가로축에 구간 범위를 표시해줘.</pre>
+      <button class="copy" type="button">프롬프트 복사</button>
+    </div>
+  </article>
+
+  <article class="card" data-time="0" data-cmp="0">
+    <div class="thumb">
+      <svg viewBox="0 0 200 96" role="img" aria-label="분산형 차트 예시">
+        <line x1="24" y1="88" x2="192" y2="88" stroke="var(--grid)" stroke-width="1"/>
+        <line x1="24" y1="8" x2="24" y2="88" stroke="var(--grid)" stroke-width="1"/>
+        <circle cx="44" cy="74" r="3.2" fill="var(--accent)"/><circle cx="58" cy="66" r="3.2" fill="var(--accent)"/>
+        <circle cx="70" cy="70" r="3.2" fill="var(--accent)"/><circle cx="84" cy="56" r="3.2" fill="var(--accent)"/>
+        <circle cx="96" cy="60" r="3.2" fill="var(--accent)"/><circle cx="108" cy="44" r="3.2" fill="var(--accent)"/>
+        <circle cx="122" cy="48" r="3.2" fill="var(--accent)"/><circle cx="134" cy="34" r="3.2" fill="var(--accent)"/>
+        <circle cx="148" cy="38" r="3.2" fill="var(--accent)"/><circle cx="162" cy="24" r="3.2" fill="var(--accent)"/>
+        <line x1="40" y1="76" x2="170" y2="26" stroke="var(--accent-2)" stroke-width="1.8" stroke-dasharray="5 4"/>
+      </svg>
+    </div>
+    <div class="head"><span class="fno">⑦</span><h3>상관</h3></div>
+    <p class="when">무엇과 무엇이 같이 움직이나</p>
+    <p class="pick"><b>분산형</b> · 점 하나가 한 건</p>
+    <p class="avoid"><span>✕</span> 꺾은선 — 없는 순서를 만들어낸다</p>
+    <div class="pbox">
+      <pre data-lab>방송분(방송 시간)과 실매출의 관계를 분산형 차트로 그려줘.
+점 하나가 방송 1건이 되도록 하고, 추세선을 추가해줘.</pre>
+      <pre data-own hidden>[숫자 컬럼 A]와 [숫자 컬럼 B]의 관계를 분산형 차트로 그려줘.
+점 하나가 한 건이 되도록 하고, 추세선을 추가해줘.</pre>
+      <button class="copy" type="button">프롬프트 복사</button>
+    </div>
+  </article>
+
+  <article class="card" data-time="1" data-cmp="1">
+    <div class="thumb">
+      <svg viewBox="0 0 200 96" role="img" aria-label="폭포 차트 예시">
+        <line x1="20" y1="88" x2="192" y2="88" stroke="var(--grid)" stroke-width="1"/>
+        <rect x="30" y="34" width="30" height="54" fill="var(--accent)"/>
+        <rect x="72" y="34" width="30" height="26" fill="var(--warn)"/>
+        <rect x="114" y="30" width="30" height="30" fill="var(--accent-2)"/>
+        <rect x="156" y="30" width="30" height="58" fill="var(--accent)"/>
+        <line x1="60" y1="34" x2="72" y2="34" stroke="var(--grid)" stroke-width="1" stroke-dasharray="3 2"/>
+        <line x1="102" y1="60" x2="114" y2="60" stroke="var(--grid)" stroke-width="1" stroke-dasharray="3 2"/>
+        <line x1="144" y1="30" x2="156" y2="30" stroke="var(--grid)" stroke-width="1" stroke-dasharray="3 2"/>
+      </svg>
+    </div>
+    <div class="head"><span class="fno">⑧</span><h3>변화요인 분해</h3></div>
+    <p class="when">증감이 어떤 힘 때문에 생겼나</p>
+    <p class="pick"><b>폭포(워터폴)</b> · 시작과 끝을 양끝에</p>
+    <p class="avoid"><span>✕</span> 합계 막대 둘 — 상쇄된 힘이 안 보인다</p>
+    <div class="pbox">
+      <pre data-lab>11월 대비 12월 매출 증감을 폭포 차트로 그려줘.
+왼쪽 끝은 11월 실매출, 오른쪽 끝은 12월 실매출이고
+가운데에 물량효과와 단가효과를 순서대로 놓아줘.</pre>
+      <pre data-own hidden>[이전 기간] 대비 [이번 기간]의 [금액 컬럼] 증감을 폭포 차트로 그려줘.
+양끝은 각 기간의 합계, 가운데는 [요인 1]과 [요인 2]로 놓아줘.</pre>
+      <button class="copy" type="button">프롬프트 복사</button>
+    </div>
+  </article>
+
+  <article class="card" data-time="0" data-cmp="1">
+    <div class="thumb">
+      <svg viewBox="0 0 200 96" role="img" aria-label="이상치 강조 막대 차트 예시">
+        <line x1="20" y1="88" x2="192" y2="88" stroke="var(--grid)" stroke-width="1"/>
+        <rect x="28" y="40" width="20" height="48" fill="var(--accent-2)"/>
+        <rect x="54" y="36" width="20" height="52" fill="var(--accent-2)"/>
+        <rect x="80" y="66" width="20" height="22" fill="var(--warn)"/>
+        <rect x="106" y="38" width="20" height="50" fill="var(--accent-2)"/>
+        <rect x="132" y="42" width="20" height="46" fill="var(--accent-2)"/>
+        <rect x="158" y="34" width="20" height="54" fill="var(--accent-2)"/>
+        <line x1="22" y1="46" x2="188" y2="46" stroke="var(--ink2)" stroke-width="1.6" stroke-dasharray="5 4"/>
+      </svg>
+    </div>
+    <div class="head"><span class="fno">⑨</span><h3>이상탐지</h3></div>
+    <p class="when">무엇이 정상 범위를 벗어나나</p>
+    <p class="pick"><b>막대 + 기준선</b> · 벗어난 것만 다른 색</p>
+    <p class="avoid"><span>✕</span> 전부 같은 색 — 어디를 볼지 알 수 없다</p>
+    <div class="pbox">
+      <pre data-lab>카테고리별 달성률을 세로 막대 차트로 그리고,
+전체 평균 95.1% 위치에 기준선을 긋고
+기준선 아래 막대만 다른 색으로 칠해줘.</pre>
+      <pre data-own hidden>[분류 컬럼]별 [지표 컬럼]을 세로 막대 차트로 그리고,
+전체 평균 위치에 기준선을 긋고
+기준선 아래 막대만 다른 색으로 칠해줘.</pre>
+      <button class="copy" type="button">프롬프트 복사</button>
+    </div>
+  </article>
+
+  <article class="card" data-time="0" data-cmp="0">
+    <div class="thumb">
+      <svg viewBox="0 0 200 96" role="img" aria-label="4분면 분산형 차트 예시">
+        <rect x="24" y="8" width="164" height="80" fill="none" stroke="var(--grid)" stroke-width="1"/>
+        <line x1="106" y1="8" x2="106" y2="88" stroke="var(--ink2)" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <line x1="24" y1="48" x2="188" y2="48" stroke="var(--ink2)" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <circle cx="140" cy="26" r="3.4" fill="var(--accent)"/><circle cx="158" cy="34" r="3.4" fill="var(--accent)"/>
+        <circle cx="126" cy="20" r="3.4" fill="var(--accent)"/>
+        <circle cx="56" cy="30" r="3.4" fill="var(--accent-2)"/><circle cx="74" cy="38" r="3.4" fill="var(--accent-2)"/>
+        <circle cx="48" cy="70" r="3.4" fill="var(--warn)"/><circle cx="70" cy="76" r="3.4" fill="var(--warn)"/>
+        <circle cx="140" cy="68" r="3.4" fill="var(--accent-2)"/><circle cx="162" cy="76" r="3.4" fill="var(--accent-2)"/>
+      </svg>
+    </div>
+    <div class="head"><span class="fno">⑩</span><h3>세그먼트</h3></div>
+    <p class="when">어떤 묶음으로 나눌 수 있나</p>
+    <p class="pick"><b>분산형 4분면</b> · 두 축의 중앙값으로 나눔</p>
+    <p class="avoid"><span>✕</span> 임의의 등급 라벨 — 기준이 설명되지 않는다</p>
+    <div class="pbox">
+      <pre data-lab>가로축은 방송 건수, 세로축은 달성률로 상품별 분산형 차트를 그려줘.
+각 축의 중앙값에 기준선을 넣어 4분면으로 나눠줘.</pre>
+      <pre data-own hidden>가로축은 [지표 A], 세로축은 [지표 B]로 [대상]별 분산형 차트를 그려줘.
+각 축의 중앙값에 기준선을 넣어 4분면으로 나눠줘.</pre>
+      <button class="copy" type="button">프롬프트 복사</button>
+    </div>
+  </article>
+
+</div>
+
+<section>
+  <h2>차트 3금기</h2>
+  <p class="sub">AI가 만들어 준 차트도 이 세 가지는 사람이 잡아야 합니다.</p>
+  <div class="rules">
+    <div class="rule">
+      <h4>0에서 시작하지 않는 막대</h4>
+      <p>세로축을 중간부터 끊으면 차이가 실제보다 몇 배 커 보입니다. 막대는 반드시 0 기준입니다.</p>
+      <p class="fix">→ "세로축을 0부터 시작하게 해줘"</p>
+    </div>
+    <div class="rule">
+      <h4>조각 7개 넘는 원그래프</h4>
+      <p>사람은 각도 크기를 정확히 비교하지 못합니다. 항목이 많으면 순위를 읽을 수 없습니다.</p>
+      <p class="fix">→ "가로 막대로 바꿔줘"</p>
+    </div>
+    <div class="rule">
+      <h4>축·단위 없는 차트</h4>
+      <p>억인지 만 원인지, 어느 기간인지 모르면 보고 자리에서 반드시 질문이 나옵니다.</p>
+      <p class="fix">→ "제목에 기간과 단위를 넣어줘"</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>원하는 모양이 안 나올 때</h2>
+  <p class="sub">새로 설명하지 말고, 아래 한 가지만 바꿔 다시 요청하세요. 세 번 넘어가면 그때 손으로 고치는 편이 빠릅니다.</p>
+  <div class="retry">
+    <div class="retry-row"><div class="k">순서가 뒤섞임</div><div class="v">값이 큰 순서로 정렬해줘</div></div>
+    <div class="retry-row"><div class="k">차이가 안 보임</div><div class="v">세로축 범위를 90에서 106으로 바꿔줘</div></div>
+    <div class="retry-row"><div class="k">숫자를 못 읽음</div><div class="v">각 막대에 데이터 레이블을 넣고, 1000단위 구분기호를 써줘</div></div>
+    <div class="retry-row"><div class="k">항목이 너무 많음</div><div class="v">상위 8개만 남기고 나머지는 '기타'로 묶어줘</div></div>
+    <div class="retry-row"><div class="k">차트 종류가 다름</div><div class="v">이건 가로 막대로 다시 만들어줘</div></div>
+  </div>
+</section>
+
+<footer>
+  홈앤쇼핑 Lv2 「AI 기반 데이터 분석 자동화」 · M7 프레임별 차트 선택 · 실습 데이터 프롬프트는 <span style="font-family:var(--mono)">분석용_사본_배포.xlsx</span> 컬럼 기준입니다.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var grid = document.getElementById('grid');
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.card'));
+  var fTime = document.getElementById('f-time');
+  var fCmp  = document.getElementById('f-cmp');
+
+  function applyFilter(){
+    var t = fTime.checked, c = fCmp.checked;
+    cards.forEach(function(card){
+      var ok = true;
+      if (t) ok = ok && card.dataset.time === '1';
+      if (c) ok = ok && card.dataset.cmp === '1';
+      card.classList.toggle('dim', !(ok || (!t && !c)));
+    });
+  }
+  fTime.addEventListener('change', applyFilter);
+  fCmp.addEventListener('change', applyFilter);
+
+  var bLab = document.getElementById('m-lab');
+  var bOwn = document.getElementById('m-own');
+  function setMode(own){
+    bLab.setAttribute('aria-pressed', String(!own));
+    bOwn.setAttribute('aria-pressed', String(own));
+    cards.forEach(function(card){
+      var a = card.querySelector('pre[data-lab]');
+      var b = card.querySelector('pre[data-own]');
+      if (a) a.hidden = own;
+      if (b) b.hidden = !own;
+    });
+    try { localStorage.setItem('chartpick-mode', own ? 'own' : 'lab'); } catch(e){}
+  }
+  bLab.addEventListener('click', function(){ setMode(false); });
+  bOwn.addEventListener('click', function(){ setMode(true); });
+  try {
+    if (localStorage.getItem('chartpick-mode') === 'own') setMode(true);
+  } catch(e){}
+
+  grid.addEventListener('click', function(ev){
+    var btn = ev.target.closest('.copy');
+    if (!btn) return;
+    var box = btn.closest('.pbox');
+    var pre = box.querySelector('pre:not([hidden])');
+    if (!pre) return;
+    var text = pre.textContent;
+    function done(){
+      btn.textContent = '복사됨';
+      btn.classList.add('done');
+      setTimeout(function(){ btn.textContent = '프롬프트 복사'; btn.classList.remove('done'); }, 1500);
+    }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly','');
+      ta.style.position = 'fixed'; ta.style.top = '-1000px';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); }
+      catch(e){ btn.textContent = '복사 실패'; setTimeout(function(){ btn.textContent = '프롬프트 복사'; }, 1500); }
+      ta.remove();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else { fallback(); }
+  });
+})();
+</script>
+</body>
+</html>
